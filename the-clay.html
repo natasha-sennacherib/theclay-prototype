@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Clay — Ancient Writing, Alive</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --clay-dark: #1a0f07;
+    --clay-deep: #2d1a0e;
+    --clay-mid: #5c3520;
+    --clay-warm: #8b5a3a;
+    --clay-tan: #c4956a;
+    --clay-light: #e8c99a;
+    --clay-pale: #f5e6cc;
+    --gold: #c9a84c;
+    --gold-bright: #f0c040;
+    --ink: #0d0805;
+    --scholar-accent: #4a7c8a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--clay-dark); color: var(--clay-pale); font-family: 'EB Garamond', Georgia, serif; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 1000; opacity: 0.35;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.1'/%3E%3C/svg%3E");
+  }
+
+  /* LANDING */
+  #landing { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; padding: 2rem; }
+  .tablet-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 50%, #3d1f0d 0%, #1a0f07 70%), radial-gradient(ellipse 40% 40% at 20% 80%, #2d1a0e 0%, transparent 70%); }
+  .tablet-texture { position: absolute; inset: 0; background-image: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(139,90,58,0.03) 3px, rgba(139,90,58,0.03) 4px), repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(139,90,58,0.02) 3px, rgba(139,90,58,0.02) 4px); }
+  .landing-content { position: relative; z-index: 10; text-align: center; max-width: 700px; }
+  .big-sign { font-size: clamp(5rem,15vw,10rem); line-height:1; color: var(--clay-tan); opacity:0; animation: fadePress 2s ease forwards 0.5s; text-shadow: 0 0 60px rgba(196,149,106,0.3), 0 4px 20px rgba(0,0,0,0.8); margin-bottom:1.5rem; display:block; }
+  @keyframes fadePress { 0%{opacity:0;transform:scale(1.08);filter:blur(4px)} 60%{opacity:1;transform:scale(0.98);filter:blur(0)} 100%{opacity:1;transform:scale(1);filter:blur(0)} }
+  .sign-meaning { font-size: clamp(1rem,2.5vw,1.3rem); color: var(--clay-light); opacity:0; animation: riseIn 1.5s ease forwards 1.8s; letter-spacing:0.08em; margin-bottom:0.5rem; }
+  .sign-age { font-family:'Space Mono',monospace; font-size:0.75rem; color:var(--clay-warm); opacity:0; animation: riseIn 1.5s ease forwards 2.3s; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:3rem; }
+  @keyframes riseIn { 0%{opacity:0;transform:translateY(12px)} 100%{opacity:1;transform:translateY(0)} }
+  .mode-choice { display:flex; gap:1.5rem; justify-content:center; opacity:0; animation: riseIn 1.5s ease forwards 3s; flex-wrap:wrap; }
+  .mode-btn { padding:0.9rem 2.2rem; border:1px solid; font-family:'Cinzel',serif; font-size:0.8rem; letter-spacing:0.2em; text-transform:uppercase; cursor:pointer; transition:all 0.3s ease; text-decoration:none; display:inline-block; }
+  .mode-btn.story { border-color:var(--clay-tan); color:var(--clay-tan); background:transparent; }
+  .mode-btn.story:hover { background:var(--clay-tan); color:var(--clay-dark); }
+  .mode-btn.scholar { border-color:var(--scholar-accent); color:#7ab8c8; background:transparent; }
+  .mode-btn.scholar:hover { background:var(--scholar-accent); color:white; }
+  .scroll-hint { position:absolute; bottom:2rem; left:50%; transform:translateX(-50%); opacity:0; animation: riseIn 1s ease forwards 4s; font-family:'Space Mono',monospace; font-size:0.65rem; letter-spacing:0.3em; color:var(--clay-mid); text-transform:uppercase; }
+
+  /* APP */
+  #app { display:none; min-height:100vh; }
+  .topbar { position:sticky; top:0; z-index:100; background:rgba(26,15,7,0.96); backdrop-filter:blur(12px); border-bottom:1px solid rgba(139,90,58,0.2); padding:1rem 2rem; display:flex; align-items:center; justify-content:space-between; }
+  .logo { font-family:'Cinzel',serif; font-size:1.1rem; font-weight:900; letter-spacing:0.3em; color:var(--gold); text-transform:uppercase; }
+  .logo span { color:var(--clay-tan); font-weight:400; }
+  .mode-toggle { display:flex; align-items:center; gap:0.75rem; font-family:'Space Mono',monospace; font-size:0.7rem; letter-spacing:0.1em; }
+  .toggle-label { color:var(--clay-warm); text-transform:uppercase; }
+  .toggle-label.active { color:var(--clay-light); }
+  .toggle-switch { width:44px; height:22px; background:var(--clay-deep); border:1px solid var(--clay-mid); border-radius:11px; cursor:pointer; position:relative; transition:background 0.3s; }
+  .toggle-switch.scholar-mode { background:var(--scholar-accent); border-color:#7ab8c8; }
+  .toggle-knob { position:absolute; top:2px; left:2px; width:16px; height:16px; background:var(--clay-tan); border-radius:50%; transition:transform 0.3s, background 0.3s; }
+  .toggle-switch.scholar-mode .toggle-knob { transform:translateX(22px); background:white; }
+
+  .nav-tabs { display:flex; border-bottom:1px solid rgba(139,90,58,0.15); padding:0 2rem; background:rgba(26,15,7,0.7); gap:0; overflow-x:auto; }
+  .nav-tab { padding:1rem 1.2rem; font-family:'Cinzel',serif; font-size:0.72rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--clay-warm); cursor:pointer; border-bottom:2px solid transparent; transition:all 0.2s; white-space:nowrap; }
+  .nav-tab:hover { color:var(--clay-light); }
+  .nav-tab.active { color:var(--gold); border-bottom-color:var(--gold); }
+
+  .section { display:none; padding:3rem 2rem; max-width:1100px; margin:0 auto; }
+  .section.active { display:block; }
+  @keyframes fadeInUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+  .fade-in { animation: fadeInUp 0.5s ease forwards; }
+
+  .section-title { font-family:'Cinzel',serif; font-size:clamp(1.5rem,4vw,2.2rem); color:var(--gold); margin-bottom:0.5rem; font-weight:400; }
+  .section-subtitle { font-family:'EB Garamond',serif; font-size:1.1rem; color:var(--clay-warm); margin-bottom:2rem; font-style:italic; }
+
+  /* SIGN FILTER BAR */
+  .filter-bar { display:flex; gap:0.6rem; flex-wrap:wrap; margin-bottom:2rem; }
+  .filter-btn { padding:0.4rem 1rem; border:1px solid rgba(139,90,58,0.3); font-family:'Space Mono',monospace; font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--clay-warm); cursor:pointer; transition:all 0.2s; background:transparent; }
+  .filter-btn:hover, .filter-btn.active { border-color:var(--clay-tan); color:var(--clay-light); background:rgba(196,149,106,0.07); }
+
+  /* SIGNS GRID */
+  .signs-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(130px,1fr)); gap:1rem; margin-bottom:2rem; }
+  .sign-card { background:linear-gradient(145deg, #2d1a0e, #1f1108); border:1px solid rgba(139,90,58,0.25); padding:1.5rem 1rem; text-align:center; cursor:pointer; transition:all 0.3s ease; position:relative; overflow:hidden; }
+  .sign-card::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(196,149,106,0.05) 0%,transparent 60%); opacity:0; transition:opacity 0.3s; }
+  .sign-card:hover { border-color:var(--clay-tan); transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,0,0,0.4),0 0 20px rgba(196,149,106,0.08); }
+  .sign-card:hover::before { opacity:1; }
+  .sign-card.selected { border-color:var(--gold); background:linear-gradient(145deg,#3d2010,#2d1a0e); }
+  .sign-card.hidden { display:none; }
+  .sign-glyph { font-size:2.5rem; line-height:1; margin-bottom:0.7rem; display:block; color:var(--clay-light); }
+  .sign-name { font-family:'Cinzel',serif; font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--clay-warm); display:block; margin-bottom:0.3rem; }
+  .sign-translation { font-family:'EB Garamond',serif; font-size:0.95rem; color:var(--clay-tan); font-style:italic; }
+  .sign-category-dot { width:5px; height:5px; border-radius:50%; display:inline-block; margin-right:4px; vertical-align:middle; }
+
+  /* SIGN DETAIL */
+  .sign-detail { display:none; background:linear-gradient(135deg,#2d1a0e 0%,#1f1108 100%); border:1px solid rgba(196,149,106,0.3); padding:2.5rem; margin-top:0.5rem; position:relative; }
+  .sign-detail.visible { display:grid; grid-template-columns:220px 1fr; gap:2.5rem; }
+  .sign-detail-left { display:flex; flex-direction:column; gap:1rem; }
+  .sign-detail-glyph { font-size:6rem; color:var(--clay-light); text-align:center; line-height:1; padding:1.5rem; background:rgba(0,0,0,0.2); border:1px solid rgba(139,90,58,0.2); display:flex; align-items:center; justify-content:center; text-shadow:0 0 40px rgba(196,149,106,0.4); }
+  
+  /* EVOLUTION STRIP */
+  .evolution-strip { background:rgba(0,0,0,0.2); border:1px solid rgba(139,90,58,0.15); padding:1rem; }
+  .evolution-label { font-family:'Space Mono',monospace; font-size:0.6rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--clay-mid); margin-bottom:0.8rem; display:block; }
+  .evolution-steps { display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap; }
+  .evo-step { text-align:center; flex:1; min-width:40px; }
+  .evo-glyph { font-size:1.4rem; color:var(--clay-tan); display:block; margin-bottom:0.2rem; transition:transform 0.3s; }
+  .evo-step:hover .evo-glyph { transform:scale(1.3); }
+  .evo-era { font-family:'Space Mono',monospace; font-size:0.5rem; color:var(--clay-mid); display:block; line-height:1.3; }
+  .evo-arrow { color:var(--clay-mid); font-size:0.7rem; flex-shrink:0; }
+
+  .sign-detail-info h2 { font-family:'Cinzel',serif; font-size:1.6rem; color:var(--gold); font-weight:400; margin-bottom:0.3rem; }
+  .sign-detail-info .transliteration { font-family:'Space Mono',monospace; font-size:0.8rem; color:var(--scholar-accent); letter-spacing:0.1em; margin-bottom:1.5rem; display:block; }
+  .mode-content { display:none; }
+  .mode-content.visible { display:block; }
+  .story-content p { font-size:1.15rem; line-height:1.8; color:var(--clay-pale); margin-bottom:1rem; }
+  .story-content .highlight { color:var(--clay-tan); font-style:italic; }
+  .scholar-content { font-family:'Space Mono',monospace; font-size:0.8rem; }
+  .scholar-row { display:grid; grid-template-columns:160px 1fr; gap:1rem; padding:0.7rem 0; border-bottom:1px solid rgba(139,90,58,0.1); align-items:start; }
+  .scholar-key { color:var(--scholar-accent); text-transform:uppercase; letter-spacing:0.08em; font-size:0.7rem; }
+  .scholar-val { color:var(--clay-light); line-height:1.6; font-size:0.78rem; }
+  .close-detail { position:absolute; top:1rem; right:1rem; background:none; border:1px solid rgba(139,90,58,0.3); color:var(--clay-warm); width:28px; height:28px; cursor:pointer; font-size:0.8rem; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+  .close-detail:hover { border-color:var(--clay-tan); color:var(--clay-tan); }
+
+  /* WRITE */
+  .write-container { display:grid; grid-template-columns:1fr 1fr; gap:2rem; margin-top:1rem; }
+  .write-input-area { background:linear-gradient(145deg,#2d1a0e,#1f1108); border:1px solid rgba(139,90,58,0.3); padding:2rem; }
+  .write-label { font-family:'Cinzel',serif; font-size:0.7rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--clay-warm); margin-bottom:0.8rem; display:block; }
+  .write-input { width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(139,90,58,0.2); color:var(--clay-pale); font-family:'EB Garamond',serif; font-size:1.2rem; padding:0.8rem 1rem; outline:none; transition:border-color 0.2s; resize:none; height:80px; }
+  .write-input:focus { border-color:var(--clay-tan); }
+  .write-input::placeholder { color:var(--clay-mid); font-style:italic; }
+  .write-btn-row { display:flex; gap:0.8rem; margin-top:1rem; }
+  .write-btn { padding:0.8rem 1.5rem; background:transparent; border:1px solid var(--gold); color:var(--gold); font-family:'Cinzel',serif; font-size:0.72rem; letter-spacing:0.15em; text-transform:uppercase; cursor:pointer; transition:all 0.3s; flex:1; }
+  .write-btn:hover { background:var(--gold); color:var(--clay-dark); }
+  .write-btn.secondary { border-color:var(--clay-tan); color:var(--clay-tan); }
+  .write-btn.secondary:hover { background:var(--clay-tan); color:var(--clay-dark); }
+  .write-output { background:linear-gradient(145deg,#221208,#1a0f07); border:1px solid rgba(139,90,58,0.2); padding:2rem; min-height:220px; display:flex; flex-direction:column; }
+  .write-output-label { font-family:'Cinzel',serif; font-size:0.7rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--clay-warm); margin-bottom:1.5rem; display:block; }
+  .cuneiform-render { font-size:2.8rem; color:var(--clay-light); letter-spacing:0.2em; line-height:1.4; flex:1; display:flex; align-items:center; flex-wrap:wrap; gap:0.6rem; text-shadow:0 0 20px rgba(196,149,106,0.3); min-height:80px; }
+  .cuneiform-render.empty { align-items:center; justify-content:center; color:var(--clay-mid); font-size:1rem; font-family:'EB Garamond',serif; font-style:italic; }
+  .write-explanation { margin-top:1.5rem; padding-top:1rem; border-top:1px solid rgba(139,90,58,0.15); font-size:0.95rem; color:var(--clay-warm); font-style:italic; line-height:1.7; }
+  .char-result { display:inline-flex; flex-direction:column; align-items:center; gap:0.3rem; }
+  .char-glyph { font-size:2.5rem; color:var(--clay-light); }
+  .char-label { font-family:'Space Mono',monospace; font-size:0.55rem; color:var(--clay-warm); letter-spacing:0.05em; }
+  
+  /* CANVAS / DOWNLOAD */
+  .download-area { margin-top:1.5rem; padding-top:1rem; border-top:1px solid rgba(139,90,58,0.15); }
+  #inscriptionCanvas { display:none; }
+  .download-preview { width:100%; border:1px solid rgba(139,90,58,0.2); margin-bottom:0.8rem; display:none; }
+
+  /* TABLETS */
+  .tablets-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:1.5rem; margin-bottom:2rem; }
+  .tablet-card { background:linear-gradient(145deg,#2d1a0e,#1f1108); border:1px solid rgba(139,90,58,0.2); padding:1.8rem; cursor:pointer; transition:all 0.3s; position:relative; overflow:hidden; }
+  .tablet-card::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, var(--clay-tan), transparent); opacity:0; transition:opacity 0.3s; }
+  .tablet-card:hover { border-color:var(--clay-tan); transform:translateY(-3px); box-shadow:0 12px 40px rgba(0,0,0,0.5); }
+  .tablet-card:hover::after { opacity:1; }
+  .tablet-card.selected { border-color:var(--gold); }
+  .tablet-card-tag { font-family:'Space Mono',monospace; font-size:0.6rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--scholar-accent); margin-bottom:0.7rem; display:block; }
+  .tablet-card-title { font-family:'Cinzel',serif; font-size:1rem; color:var(--clay-light); font-weight:400; margin-bottom:0.6rem; line-height:1.4; }
+  .tablet-card-teaser { font-size:0.9rem; color:var(--clay-warm); font-style:italic; line-height:1.6; }
+  .tablet-card-glyph { position:absolute; bottom:-0.5rem; right:0.5rem; font-size:4rem; color:rgba(139,90,58,0.08); pointer-events:none; }
+
+  /* TABLET DETAIL */
+  .tablet-detail { display:none; background:linear-gradient(135deg,#2d1a0e 0%,#1a0f07 100%); border:1px solid rgba(196,149,106,0.25); padding:3rem; margin-top:1rem; position:relative; }
+  .tablet-detail.visible { display:block; }
+  .tablet-detail-tag { font-family:'Space Mono',monospace; font-size:0.65rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--scholar-accent); margin-bottom:1rem; display:block; }
+  .tablet-detail-title { font-family:'Cinzel',serif; font-size:clamp(1.3rem,3vw,1.9rem); color:var(--gold); font-weight:400; margin-bottom:1.5rem; line-height:1.3; }
+  .story-text p { font-size:1.15rem; line-height:1.9; color:var(--clay-pale); margin-bottom:1.2rem; }
+  .story-text .em { color:var(--clay-tan); font-style:italic; }
+  .scholar-block { background:rgba(0,0,0,0.25); border-left:2px solid var(--scholar-accent); padding:1.2rem 1.5rem; margin:1.5rem 0; font-family:'Space Mono',monospace; font-size:0.78rem; line-height:1.8; color:var(--clay-light); }
+  .scholar-block .sk { color:var(--scholar-accent); }
+  .tablet-excerpt { background:rgba(0,0,0,0.3); border:1px solid rgba(139,90,58,0.2); padding:1.5rem 2rem; margin:1.5rem 0; }
+  .excerpt-cuneiform { font-size:2rem; letter-spacing:0.3em; color:var(--clay-tan); margin-bottom:0.8rem; display:block; line-height:1.5; }
+  .excerpt-translat { font-family:'Space Mono',monospace; font-size:0.75rem; color:var(--scholar-accent); margin-bottom:0.5rem; display:block; }
+  .excerpt-translation { font-family:'EB Garamond',serif; font-size:1.1rem; color:var(--clay-pale); font-style:italic; }
+
+  /* RESPONSIVE */
+  @media (max-width:700px) {
+    .sign-detail.visible { grid-template-columns:1fr; }
+    .write-container { grid-template-columns:1fr; }
+    .section { padding:2rem 1rem; }
+    .topbar { padding:0.8rem 1rem; }
+    .nav-tab { padding:0.8rem 0.6rem; font-size:0.62rem; }
+    .tablets-grid { grid-template-columns:1fr; }
+    .tablet-detail { padding:1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LANDING -->
+<section id="landing">
+  <div class="tablet-bg"></div>
+  <div class="tablet-texture"></div>
+  <div class="landing-content">
+    <span class="big-sign">𒀀</span>
+    <p class="sign-meaning">This sign is 5,000 years old. It means <em>"water."</em></p>
+    <p class="sign-age">Sumerian · circa 3000 BCE · Mesopotamia</p>
+    <div class="mode-choice">
+      <a class="mode-btn story" onclick="enterApp('story')">Story Mode</a>
+      <a class="mode-btn scholar" onclick="enterApp('scholar')">Scholar Mode</a>
+    </div>
+  </div>
+  <p class="scroll-hint">↓ enter the archive</p>
+</section>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="logo">The <span>Clay</span></div>
+    <div class="mode-toggle">
+      <span class="toggle-label" id="label-story">Story</span>
+      <div class="toggle-switch" id="toggleSwitch" onclick="toggleMode()">
+        <div class="toggle-knob"></div>
+      </div>
+      <span class="toggle-label" id="label-scholar">Scholar</span>
+    </div>
+  </div>
+
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="showSection('signs',this)">Sign Library</div>
+    <div class="nav-tab" onclick="showSection('write',this)">Write in Cuneiform</div>
+    <div class="nav-tab" onclick="showSection('tablets',this)">Tablet Archive</div>
+
+  </div>
+
+  <!-- SIGN LIBRARY -->
+  <div class="section active fade-in" id="sec-signs">
+    <h1 class="section-title">The Sign Library</h1>
+    <p class="section-subtitle">Every mark was pressed into wet clay with a reed stylus. Each one carries a world.</p>
+    <div class="filter-bar" id="filterBar"></div>
+    <div class="signs-grid" id="signsGrid"></div>
+    <div class="sign-detail" id="signDetail">
+      <button class="close-detail" onclick="closeDetail()">✕</button>
+      <div class="sign-detail-left">
+        <div class="sign-detail-glyph" id="detailGlyph"></div>
+        <div class="evolution-strip" id="detailEvo"></div>
+      </div>
+      <div class="sign-detail-info">
+        <h2 id="detailName"></h2>
+        <span class="transliteration" id="detailTranslit"></span>
+        <div class="mode-content story-content" id="detailStory"></div>
+        <div class="mode-content scholar-content" id="detailScholar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WRITE -->
+  <div class="section" id="sec-write">
+    <h1 class="section-title">Write in Cuneiform</h1>
+    <p class="section-subtitle">Enter a word or name. See it pressed into the oldest script on earth.</p>
+    <div class="write-container">
+      <div class="write-input-area">
+        <span class="write-label">Your word or name</span>
+        <textarea class="write-input" id="writeInput" placeholder="e.g. water, love, king, Natasha..."></textarea>
+        <div class="write-btn-row">
+          <button class="write-btn" onclick="renderCuneiform()">Press into Clay →</button>
+          <button class="write-btn secondary" onclick="downloadInscription()">↓ Download</button>
+        </div>
+
+      </div>
+      <div class="write-output">
+        <span class="write-output-label">Your inscription</span>
+        <div class="cuneiform-render empty" id="cuneiformResult">Your inscription will appear here</div>
+        <canvas id="inscriptionCanvas" width="800" height="300"></canvas>
+        <img class="download-preview" id="downloadPreview" alt="inscription preview">
+        <div class="write-explanation" id="writeExplanation"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLET ARCHIVE -->
+  <div class="section" id="sec-tablets">
+    <h1 class="section-title">Tablet Archive</h1>
+    <p class="section-subtitle">Five tablets. Five windows into a vanished world.</p>
+    <div class="tablets-grid" id="tabletsGrid"></div>
+    <div class="tablet-detail" id="tabletDetail">
+      <button class="close-detail" onclick="closeTablet()">✕</button>
+      <span class="tablet-detail-tag" id="tdTag"></span>
+      <h2 class="tablet-detail-title" id="tdTitle"></h2>
+      <div id="tdContent"></div>
+    </div>
+  </div>
+
+
+</div>
+
+<script>
+// ─── SIGNS DATA (20 signs) ───
+const signs = [
+  { glyph:'𒀀', name:'A', meaning:'water', category:'nature',
+    period:'Sumerian, c. 3000 BCE',
+    evolution:[{g:'≋',e:'Pictograph\n3200 BCE'},{g:'𒀀',e:'Early\n2700 BCE'},{g:'𒀀',e:'Classic\n2000 BCE'},{g:'𒀀',e:'Neo-Assyrian\n700 BCE'}],
+    story:`<p>The sign for water is one of the oldest surviving marks in human history. The original pictograph showed rippling waves — you can still feel the movement in the wedge strokes if you look closely enough.</p><p>Scribes pressed it into clay thousands of times a day: recording floods of the Tigris, irrigation channels that fed entire cities, the water rations of temple workers. Water wasn't just survival in Mesopotamia. It was <span class="highlight">the difference between civilization and sand.</span></p>`,
+    scholar:[['Cuneiform sign','A (Borger MZL 535)'],['Sumerian','a, a₂'],['Akkadian','mû (water)'],['Type','Logogram / determinative'],['Period','Uruk period (c. 3200 BCE) onward'],['Attestation','Ubiquitous — every genre of cuneiform text'],['Related','𒇉 (canal), 𒌑 (flood/day)']]},
+  { glyph:'𒆳', name:'KUR', meaning:'mountain / land', category:'geography',
+    period:'Sumerian, c. 3000 BCE',
+    evolution:[{g:'⛰',e:'Pictograph\n3200 BCE'},{g:'𒆳',e:'Early\n2700 BCE'},{g:'𒆳',e:'Classic\n2000 BCE'},{g:'𒆳',e:'Neo-Assyrian\n700 BCE'}],
+    story:`<p>KUR is the mountain, the foreign land, the underworld — all wrapped in one sign. For the Sumerians of the flat river plains, mountains were the edge of the known world, where the sun rose and set and strange peoples lived.</p><p>In the Nineveh water records, KUR appears constantly — the <span class="highlight">water came from the mountains</span>, carried fifty kilometres through engineered channels to feed the hanging gardens. The mountain was not an obstacle. It was the source.</p>`,
+    scholar:[['Cuneiform sign','KUR (Borger MZL 366)'],['Sumerian','kur, ki, kalam'],['Akkadian','mātu (land), šadû (mountain)'],['Type','Logogram / determinative for foreign lands'],['Period','Early Dynastic onward (c. 2900 BCE)'],['Attestation','Mythology, geography, royal inscriptions']]},
+  { glyph:'𒂗', name:'EN', meaning:'lord / master', category:'people',
+    period:'Sumerian, c. 3000 BCE',
+    evolution:[{g:'◎',e:'Pictograph\n3200 BCE'},{g:'𒂗',e:'Early\n2700 BCE'},{g:'𒂗',e:'Classic\n2000 BCE'},{g:'𒂗',e:'Neo-Assyrian\n700 BCE'}],
+    story:`<p>EN is authority. Before there were kings, there were EN — the manager-priests who kept the temple economy running. The EN controlled the granaries, organised the workers, mediated between the human and the divine.</p><p>The earliest cuneiform tablets are essentially <span class="highlight">spreadsheets signed by an EN</span>. Deliveries of grain. Numbers of workers. Rations of beer. The EN was, in today's language, a chief operations officer.</p>`,
+    scholar:[['Cuneiform sign','EN (Borger MZL 164)'],['Sumerian','en, nin (feminine)'],['Akkadian','bēlu (lord, master)'],['Type','Logogram / title marker'],['Period','Uruk period onward'],['Note','EN precedes city names to indicate divine lord: d EN.ZU = Nanna, moon god']]},
+  { glyph:'𒌑', name:'UD', meaning:'sun / day / time', category:'nature',
+    period:'Sumerian, c. 3200 BCE',
+    evolution:[{g:'☀',e:'Pictograph\n3200 BCE'},{g:'𒌑',e:'Early\n2700 BCE'},{g:'𒌑',e:'Classic\n2000 BCE'},{g:'𒌑',e:'Neo-Assyrian\n700 BCE'}],
+    story:`<p>UD began as a circle with rays — literally the sun. Over millennia of use, the circle was compressed into wedges, the rays became angular strokes, until what was once a radiant disc became this tight cluster of marks.</p><p>UD counts time. The Nineveh water records use it to track the <span class="highlight">daily flow rates of the canals</span>, the number of days a sluice gate remained open, the seasonal cycles that determined when the gardens received water.</p>`,
+    scholar:[['Cuneiform sign','UD (Borger MZL 661)'],['Sumerian','ud, u₄, tam'],['Akkadian','ūmu (day), šamšu (sun)'],['Type','Logogram; determinative for time'],['Period','Uruk period (c. 3200 BCE)'],['Derived','Also: white, bright, to shine']]},
+  { glyph:'𒇽', name:'LÚ', meaning:'man / person', category:'people',
+    period:'Sumerian, c. 3000 BCE',
+    evolution:[{g:'🧍',e:'Pictograph\n3200 BCE'},{g:'𒇽',e:'Early\n2700 BCE'},{g:'𒇽',e:'Classic\n2000 BCE'},{g:'𒇽',e:'Neo-Assyrian\n700 BCE'}],
+    story:`<p>LÚ is the worker, the scribe, the farmer, the soldier — any human being defined by their role. Ancient administrative texts are full of LÚ followed by an occupation: LÚ.KÍLIB (basket carrier), LÚ.A.ZU (physician), LÚ.DUB.SAR (scribe).</p><p>In the Nineveh water records, LÚ appears in the labor tallies: <span class="highlight">how many men moved stone, dug channels, operated the chain pumps</span> that lifted water to the uppermost terraces. Each LÚ was a real person.</p>`,
+    scholar:[['Cuneiform sign','LÚ (Borger MZL 554)'],['Sumerian','lú, lam'],['Akkadian','awīlu, amēlu (person)'],['Type','Logogram; determinative for professions'],['Period','Early Dynastic onward'],['Note','As determinative, precedes hundreds of profession names']]},
+  { glyph:'𒀭', name:'DINGIR', meaning:'god / divine', category:'divine',
+    period:'Sumerian, c. 3000 BCE',
+    evolution:[{g:'✦',e:'Pictograph\n3200 BCE'},{g:'𒀭',e:'Early\n2700 BCE'},{g:'𒀭',e:'Classic\n2000 BCE'},{g:'𒀭',e:'Neo-Assyrian\n700 BCE'}],
+    story:`<p>A star pressed in clay. DINGIR is divinity itself — the silent marker that precedes every divine name. When you see this sign before a word, you have entered sacred territory. It is written but never pronounced, a marker of the holy invisible in speech.</p><p>The great paradox of cuneiform is that the same technology used to count <span class="highlight">sacks of barley and jars of beer</span> was also used to record the movements of the gods. The divine and the administrative share the same clay.</p>`,
+    scholar:[['Cuneiform sign','DINGIR / AN (Borger MZL 13)'],['Sumerian','an (sky), dingir (god)'],['Akkadian','ilu (god), šamu (sky)'],['Type','Logogram; silent determinative before divine names'],['Period','Uruk period — among the oldest attested signs'],['Notable','The sign IS the sky god An/Anu']]},
+  { glyph:'𒈗', name:'LUGAL', meaning:'king', category:'people',
+    period:'Sumerian, c. 2700 BCE',
+    evolution:[{g:'👑',e:'Concept\n3000 BCE'},{g:'𒈗',e:'Early\n2700 BCE'},{g:'𒈗',e:'Classic\n2000 BCE'},{g:'𒈗',e:'Neo-Assyrian\n700 BCE'}],
+    story:`<p>LUGAL is composed of two signs pressed together: LÚ (man) and GAL (great). The great man. Power encoded in language itself — not granted by birth alone, but defined by scale.</p><p>The first LUGAL names we know come from the Sumerian King List — a tablet recording dynasties stretching back before the flood, to when <span class="highlight">kingship descended from heaven</span>. History and myth, recorded in the same wedges.</p>`,
+    scholar:[['Cuneiform sign','LUGAL (compound: LÚ + GAL)'],['Sumerian','lugal'],['Akkadian','šarru (king)'],['Type','Logogram for royalty and ownership'],['Period','Early Dynastic II onward (c. 2700 BCE)'],['Compound','LÚ (man) + GAL (great) = "great man"']]},
+  { glyph:'𒂍', name:'É', meaning:'house / temple', category:'places',
+    period:'Sumerian, c. 3000 BCE',
+    evolution:[{g:'🏠',e:'Pictograph\n3200 BCE'},{g:'𒂍',e:'Early\n2700 BCE'},{g:'𒂍',e:'Classic\n2000 BCE'},{g:'𒂍',e:'Neo-Assyrian\n700 BCE'}],
+    story:`<p>É is shelter, institution, household — the word for both a family home and the grandest temple. Every Mesopotamian temple was an É: a house for the god, where the god lived, ate, and was clothed by priests.</p><p>É.GAL — the great house — became our word <span class="highlight">palace</span>, passing through Akkadian into Aramaic, into Arabic al-qasr, into Spanish alcázar, and finally into English. The word for Sennacherib's palace is still alive in our mouths today.</p>`,
+    scholar:[['Cuneiform sign','É (Borger MZL 167)'],['Sumerian','é, è'],['Akkadian','bītu (house, temple)'],['Type','Logogram; compound names'],['Period','Uruk period onward'],['Etymology','É.GAL → palace → alcázar → English']]},
+  { glyph:'𒍪', name:'ZI', meaning:'life / soul / breath', category:'nature',
+    period:'Sumerian, c. 2700 BCE',
+    evolution:[{g:'〜',e:'Concept\n3000 BCE'},{g:'𒍪',e:'Early\n2700 BCE'},{g:'𒍪',e:'Classic\n2000 BCE'},{g:'𒍪',e:'Neo-Assyrian\n700 BCE'}],
+    story:`<p>ZI is breath made visible. It means the living force, the soul, the throat through which air passes — life itself. In the Epic of Gilgamesh, the hero searches desperately for ZI — for immortality, for the breath that does not end.</p><p>ZI also means "to cut, to rise" — there is motion in life, a restlessness. The Sumerians did not think of the soul as something static. It was <span class="highlight">always in the act of breathing</span>, always becoming.</p>`,
+    scholar:[['Cuneiform sign','ZI (Borger MZL 741)'],['Sumerian','zi, zé'],['Akkadian','napištu (life, soul, breath)'],['Type','Logogram for life force'],['Period','Early Dynastic onward'],['Literary','Central to the Epic of Gilgamesh']]},
+  { glyph:'𒆠', name:'KI', meaning:'earth / place', category:'geography',
+    period:'Sumerian, c. 3000 BCE',
+    evolution:[{g:'⊕',e:'Pictograph\n3200 BCE'},{g:'𒆠',e:'Early\n2700 BCE'},{g:'𒆠',e:'Classic\n2000 BCE'},{g:'𒆠',e:'Neo-Assyrian\n700 BCE'}],
+    story:`<p>KI is the ground beneath your feet and the concept of place itself. Heaven (AN) above, earth (KI) below — this was the Sumerian cosmos. The gap between them was the universe, and everything that mattered happened in that space.</p><p>As a determinative, KI follows place names — a silent marker that says <span class="highlight">"this word is a location."</span> Invisible in speech, essential in writing. The scribes had invented metadata four thousand years before computers.</p>`,
+    scholar:[['Cuneiform sign','KI (Borger MZL 461)'],['Sumerian','ki'],['Akkadian','qaqqaru (earth, ground, place)'],['Type','Logogram; determinative for place names'],['Period','Uruk period onward'],['Cosmology','Paired with AN (sky) to describe the universe: AN.KI']]},
+  { glyph:'𒌷', name:'URU', meaning:'city', category:'places',
+    period:'Sumerian, c. 3000 BCE',
+    evolution:[{g:'🏙',e:'Pictograph\n3200 BCE'},{g:'𒌷',e:'Early\n2700 BCE'},{g:'𒌷',e:'Classic\n2000 BCE'},{g:'𒌷',e:'Neo-Assyrian\n700 BCE'}],
+    story:`<p>URU is the city — and cities were the defining achievement of Mesopotamian civilization. The world's first cities grew along the rivers of what is now Iraq: Uruk, Ur, Nippur, Nineveh. To live in a URU was to be civilized, protected, connected to the divine through the temple at the city's center.</p><p>The sign originally depicted a city from above: walls, gates, an interior. <span class="highlight">An aerial view drawn in clay</span>, five thousand years before aerial photography.</p>`,
+    scholar:[['Cuneiform sign','URU (Borger MZL 168)'],['Sumerian','uru, iri'],['Akkadian','ālu (city, town, settlement)'],['Type','Logogram; determinative before city names'],['Period','Uruk period onward'],['Note','The city of Uruk takes its name from this sign']]},
+  { glyph:'𒃲', name:'GAL', meaning:'great / large', category:'concepts',
+    period:'Sumerian, c. 2700 BCE',
+    evolution:[{g:'∞',e:'Concept\n3000 BCE'},{g:'𒃲',e:'Early\n2700 BCE'},{g:'𒃲',e:'Classic\n2000 BCE'},{g:'𒃲',e:'Neo-Assyrian\n700 BCE'}],
+    story:`<p>GAL is greatness — the modifier that elevates everything it touches. É.GAL (great house) = palace. LUGAL (great man) = king. It is the superlative written into the grammar of power.</p><p>When Sennacherib built his hanging gardens, his inscriptions were thick with GAL: great works, great king, great city, great gods. Greatness in ancient Mesopotamia was not modest. <span class="highlight">It was meant to be recorded in clay and read for eternity.</span></p>`,
+    scholar:[['Cuneiform sign','GAL (Borger MZL 231)'],['Sumerian','gal, mah'],['Akkadian','rabû (great, large)'],['Type','Logogram; productive in compounds'],['Period','Early Dynastic onward'],['Compounds','É.GAL (palace), LUGAL (king), EN.GAL (great lord)']]},
+  { glyph:'𒄑', name:'GIŠ', meaning:'wood / tree', category:'nature',
+    period:'Sumerian, c. 3000 BCE',
+    evolution:[{g:'🌲',e:'Pictograph\n3200 BCE'},{g:'𒄑',e:'Early\n2700 BCE'},{g:'𒄑',e:'Classic\n2000 BCE'},{g:'𒄑',e:'Neo-Assyrian\n700 BCE'}],
+    story:`<p>GIŠ is the tree, but also every wooden object made from it: a boat, a door, a plow, a weapon, a chair. As a determinative, it precedes hundreds of wooden implements — a reminder that in ancient Mesopotamia, wood was precious, imported from afar, and worth naming carefully.</p><p>In the hanging gardens of Nineveh, GIŠ would have marked the cedar and cypress trees Sennacherib imported — exotic trees from <span class="highlight">the mountains of Lebanon and Anatolia</span>, transported hundreds of miles to grow above the desert.</p>`,
+    scholar:[['Cuneiform sign','GIŠ (Borger MZL 296)'],['Sumerian','giš, ĝiš'],['Akkadian','iṣu (wood, tree)'],['Type','Logogram; determinative for wooden objects'],['Period','Uruk period onward'],['Attestation','Extremely common — agriculture, construction, trade']]},
+  { glyph:'𒌗', name:'U₄.SAKAR', meaning:'moon / crescent', category:'nature',
+    period:'Sumerian, c. 2700 BCE',
+    evolution:[{g:'🌙',e:'Pictograph\n3000 BCE'},{g:'𒌗',e:'Early\n2700 BCE'},{g:'𒌗',e:'Classic\n2000 BCE'},{g:'𒌗',e:'Neo-Assyrian\n700 BCE'}],
+    story:`<p>The moon was one of the great gods of Mesopotamia — Nanna in Sumerian, Sîn in Akkadian. The lunar calendar governed everything: religious festivals, planting seasons, the movements of armies. Astronomical tablets recording lunar eclipses are among the most meticulous scientific documents from the ancient world.</p><p>The crescent moon sign is also the sign for the <span class="highlight">month itself</span> — time measured not by the sun but by the cycle of darkness and return.</p>`,
+    scholar:[['Cuneiform sign','U₄.SAKAR (composite)'],['Sumerian','nanna, suen'],['Akkadian','Sîn (moon god), warhu (month)'],['Type','Logogram for moon and month'],['Period','Early Dynastic onward'],['Religion','Nanna/Sîn: patron deity of Ur']]},
+  { glyph:'𒊩', name:'MUNUS', meaning:'woman', category:'people',
+    period:'Sumerian, c. 3000 BCE',
+    evolution:[{g:'♀',e:'Pictograph\n3200 BCE'},{g:'𒊩',e:'Early\n2700 BCE'},{g:'𒊩',e:'Classic\n2000 BCE'},{g:'𒊩',e:'Neo-Assyrian\n700 BCE'}],
+    story:`<p>MUNUS is woman — but also the determinative for female roles, feminine titles, and goddesses. Where LÚ marks male professions, MUNUS marks female ones: weavers, singers, priestesses, scribes. Women could and did hold scribal office in ancient Mesopotamia.</p><p>The goddess Nisaba, patron of scribes and grain, was MUNUS. The very art of writing was <span class="highlight">under feminine divine protection</span> — a fact worth sitting with when you think about who was supposed to hold the reed.</p>`,
+    scholar:[['Cuneiform sign','MUNUS (Borger MZL 473)'],['Sumerian','munus, mi'],['Akkadian','sinništu (woman)'],['Type','Logogram; determinative for female roles'],['Period','Uruk period onward'],['Notable','Female scribes attested — women could hold scribal office']]},
+  { glyph:'𒆬', name:'KÙ', meaning:'silver / pure / bright', category:'concepts',
+    period:'Sumerian, c. 2700 BCE',
+    evolution:[{g:'○',e:'Pictograph\n3000 BCE'},{g:'𒆬',e:'Early\n2700 BCE'},{g:'𒆬',e:'Classic\n2000 BCE'},{g:'𒆬',e:'Neo-Assyrian\n700 BCE'}],
+    story:`<p>KÙ means silver, but also purity and brightness — in Sumerian, economic and spiritual value were written with the same sign. Silver was the medium of exchange in ancient Mesopotamia, the currency of temples and trade routes millennia before coinage was invented.</p><p>KÙ.BABBAR (white silver) = silver. KÙ.GI (yellow silver) = gold. The distinction between precious metals was made not with a new word, but by describing the <span class="highlight">colour of the brightness</span>.</p>`,
+    scholar:[['Cuneiform sign','KÙ (Borger MZL 483)'],['Sumerian','kù, ku₃'],['Akkadian','kaspum (silver), ellu (pure)'],['Type','Logogram; basis for currency terminology'],['Period','Early Dynastic — with earliest economic records'],['Compounds','KÙ.BABBAR = silver, KÙ.GI = gold']]},
+  { glyph:'𒄿', name:'I', meaning:'oil / fat', category:'economy',
+    period:'Sumerian, c. 3000 BCE',
+    evolution:[{g:'〇',e:'Pictograph\n3200 BCE'},{g:'𒄿',e:'Early\n2700 BCE'},{g:'𒄿',e:'Classic\n2000 BCE'},{g:'𒄿',e:'Neo-Assyrian\n700 BCE'}],
+    story:`<p>I is sesame oil — one of the most important commodities in ancient Mesopotamia. Oil was fuel for lamps, ingredient in cooking, medium for medicine, perfume for offerings to the gods. Temple accounts are dense with I: so many jars delivered, so many allocated, so many remaining in store.</p><p>What strikes the modern reader is how <span class="highlight">mundane the divine economy was</span>. The gods needed oil. Someone had to count it.</p>`,
+    scholar:[['Cuneiform sign','Ì / I (Borger MZL 339)'],['Sumerian','ì'],['Akkadian','šamnu (oil, fat)'],['Type','Logogram for oil; determinative in oil compounds'],['Period','Uruk period — among earliest economic signs'],['Importance','Key temple commodity; appears in oldest administrative tablets']]},
+  { glyph:'𒁀', name:'BA', meaning:'to give / distribute', category:'concepts',
+    period:'Sumerian, c. 2700 BCE',
+    evolution:[{g:'→',e:'Concept\n3000 BCE'},{g:'𒁀',e:'Early\n2700 BCE'},{g:'𒁀',e:'Classic\n2000 BCE'},{g:'𒁀',e:'Neo-Assyrian\n700 BCE'}],
+    story:`<p>BA is the act of giving — distributing rations, allocating land, bestowing divine favour. The earliest cuneiform documents are essentially distribution records: the temple gives BA of grain to these workers, BA of oil to these craftsmen. Writing was invented, in part, to track generosity at scale.</p><p>There is something profound in the fact that one of humanity's first written words was not a name or a prayer, but <span class="highlight">a record of who received what</span>.</p>`,
+    scholar:[['Cuneiform sign','BA (Borger MZL 11)'],['Sumerian','ba'],['Akkadian','zâzu (to distribute), qiāšu (to bestow)'],['Type','Verb logogram; common in administrative texts'],['Period','Early Dynastic onward'],['Attestation','Ubiquitous in ration lists, distribution records, royal grants']]},
+  { glyph:'𒁕', name:'DA', meaning:'side / near / with', category:'concepts',
+    period:'Sumerian, c. 2700 BCE',
+    evolution:[{g:'|',e:'Stroke\n3000 BCE'},{g:'𒁕',e:'Early\n2700 BCE'},{g:'𒁕',e:'Classic\n2000 BCE'},{g:'𒁕',e:'Neo-Assyrian\n700 BCE'}],
+    story:`<p>DA is proximity — the side of something, closeness, accompaniment. It marks relationships in space and in grammar: beside the king, near the river, accompanied by a god. In ancient texts it often appears in descriptions of battle formations and building layouts.</p><p>There is something quietly beautiful about a civilization that felt the need to create a sign purely for the concept of <span class="highlight">being near something</span>. Closeness mattered enough to write down.</p>`,
+    scholar:[['Cuneiform sign','DA (Borger MZL 61)'],['Sumerian','da'],['Akkadian','idu (side, arm); used in spatial prepositions'],['Type','Logogram; syllabic value da'],['Period','Early Dynastic onward'],['Grammar','Common in administrative and literary texts as locative marker']]},
+  { glyph:'𒁉', name:'BI', meaning:'its / that / this', category:'concepts',
+    period:'Sumerian, c. 2700 BCE',
+    evolution:[{g:'◇',e:'Concept\n3000 BCE'},{g:'𒁉',e:'Early\n2700 BCE'},{g:'𒁉',e:'Classic\n2000 BCE'},{g:'𒁉',e:'Neo-Assyrian\n700 BCE'}],
+    story:`<p>BI is the demonstrative — "that one," "its," the sign that points. Every language needs a way to indicate specific things in the world, to distinguish this from that, mine from yours, the important tablet from the ordinary one.</p><p>When a scribe five thousand years ago wrote BI in a ration list, they were doing something we still do: <span class="highlight">pointing at a specific thing in the world</span> and insisting it be distinguished from all the other things.</p>`,
+    scholar:[['Cuneiform sign','BI (Borger MZL 214)'],['Sumerian','bi, be'],['Akkadian','šū / šī (that one); used as copula'],['Type','Pronominal / demonstrative; syllabic value bi'],['Period','Early Dynastic onward'],['Grammar','Essential in Sumerian grammar for third-person reference']]},
+];
+
+// ─── TABLETS DATA (5 tablets) ───
+const tablets = [
+  { id:'nineveh', tag:'BM 103000 · British Museum · c. 700 BCE · Neo-Assyrian', title:'The Nineveh Water Records', teaser:'The engineering document behind the legend of the Hanging Gardens.', glyph:'𒀀𒆳𒂗',
+    story:`<div class="story-text"><p>Somewhere in the palace of Nineveh, a scribe sat with a fresh reed and a tablet of wet clay. He pressed the first wedge. Then another. Slowly, a record emerged — not of wars or gods, but of water.</p><p>King Sennacherib had built something impossible: a garden that seemed to hang above the city, tier upon green tier, fed by a system of canals stretching <span class="em">fifty kilometres into the mountains</span>. The scribe's job was to document it. How much water flowed. Where it came from. How the sluice gates were timed.</p><p>This was not poetry. It was <span class="em">engineering</span> — recorded in the oldest writing system the world had ever produced, pressed into clay that would outlast the empire, the language, and the civilization that made it.</p><p>When you read these records today, you are reading the field notes of ancient operations managers. They just happened to write in wedges.</p></div>`,
+    scholar:`<div class="scholar-block"><div><span class="sk">Tablet ID:</span> BM 103000 (British Museum, London)</div><div><span class="sk">Period:</span> Neo-Assyrian, reign of Sennacherib (705–681 BCE)</div><div><span class="sk">Script:</span> Cuneiform, Akkadian language</div><div><span class="sk">Contents:</span> Hydraulic infrastructure — canal routing, sluice gate operation, labor allocation, water volume</div><div><span class="sk">Key scholar:</span> Dr. Stephanie Dalley (Oxford) — proposed Nineveh as true location of the Hanging Gardens (2013)</div><div><span class="sk">IE relevance:</span> Chain-pump technology, canal throughput optimization, multi-tier irrigation — all documentable as operations engineering problems</div></div><div class="tablet-excerpt"><span class="excerpt-cuneiform">𒀀𒆳𒂗𒌑𒇽</span><span class="excerpt-translat">A KUR EN UD LÚ — transliteration (approximate)</span><span class="excerpt-translation">"The waters of the mountain, by the lord's command, the men [did move] by day"</span></div>` },
+  { id:'gilgamesh', tag:'Multiple tablets · c. 1200 BCE standard version · Akkadian', title:'The Epic of Gilgamesh', teaser:'The world\'s oldest story — a king who sought immortality and found something harder.', glyph:'𒄑𒂗𒈠',
+    story:`<div class="story-text"><p>Gilgamesh was two-thirds god and one-third human, and that fraction of mortality was enough to undo him. King of Uruk, builder of its great walls, he was the most powerful man alive — until his friend Enkidu died, and he realized that death was coming for him too.</p><p>He crossed the waters at the edge of the world. He found the one man who had survived the flood and been granted eternal life. He found a plant at the bottom of the sea that restored youth. And then a snake stole it from him while he slept.</p><p>He returned to Uruk <span class="em">empty-handed and human</span>. The only immortality he found was the one he had built: the walls of his city, still standing, still visible, still describable to anyone who cared to look.</p><p>It is the oldest story we have. It is about the same things all stories are about.</p></div>`,
+    scholar:`<div class="scholar-block"><div><span class="sk">Standard Version:</span> 12 tablets, composed c. 1200 BCE (Sîn-lēqi-unninni, "editor")</div><div><span class="sk">Earlier versions:</span> Old Babylonian (c. 1800 BCE), Sumerian precursors (c. 2100 BCE)</div><div><span class="sk">Key tablets:</span> Tablet XI contains the Flood narrative — pre-dating and possibly influencing the biblical Genesis account</div><div><span class="sk">Languages:</span> Akkadian (standard), Sumerian (earlier versions), also found in Hittite and Hurrian</div><div><span class="sk">Discovery:</span> George Smith, British Museum, 1872 — recognized the Flood narrative connection to Genesis</div></div><div class="tablet-excerpt"><span class="excerpt-cuneiform">𒄑𒂗𒈠𒀭𒍪𒆗</span><span class="excerpt-translat">GIŠ.EN.MA DINGIR ZI KI.ÁG — transliteration (approximate)</span><span class="excerpt-translation">"Gilgamesh, the god's life he loved"</span></div>` },
+  { id:'hammurabi', tag:'Stele · c. 1754 BCE · Babylonian · Louvre, Paris', title:'The Code of Hammurabi', teaser:'282 laws. The world\'s first legal code, carved in stone and pressed in clay.', glyph:'𒈗𒁀𒆳',
+    story:`<div class="story-text"><p>Hammurabi, king of Babylon, received the laws from the sun god Shamash — or so the stele proclaims. Carved in diorite, two metres tall, it stood in the temple of Marduk for all to see. At the top, Hammurabi receives the measuring rod and rope (symbols of justice) from the seated god. Below: 282 laws.</p><p>Some are familiar. If a man destroys the eye of another man, his eye shall be destroyed. An eye for an eye — <span class="em">lex talionis</span>, the law of retaliation, here in its oldest known written form.</p><p>Others are surprising. Law 108: if a female innkeeper refuses to accept grain as payment for beer and instead demands silver, she shall be thrown into the water. The ancient world had strong views about monetary policy.</p><p>What strikes a modern reader is the specificity. These are not abstract principles. They are <span class="em">solutions to real problems</span> someone actually encountered and needed a rule for.</p></div>`,
+    scholar:`<div class="scholar-block"><div><span class="sk">Object:</span> Black diorite stele, 2.25m tall</div><div><span class="sk">Date:</span> c. 1754 BCE, reign of Hammurabi of Babylon (1792–1750 BCE)</div><div><span class="sk">Location:</span> Louvre Museum, Paris (since 1902, brought from Susa where Elamites had taken it)</div><div><span class="sk">Language:</span> Akkadian, cuneiform script</div><div><span class="sk">Contents:</span> Prologue, 282 laws, epilogue</div><div><span class="sk">Notable laws:</span> Eye for an eye (§196), builder liability for collapsed houses (§229), beer quality regulation (§108)</div></div><div class="tablet-excerpt"><span class="excerpt-cuneiform">𒈗𒁀𒆳𒀭𒂗</span><span class="excerpt-translat">LUGAL BA KUR DINGIR EN</span><span class="excerpt-translation">"The king distributed [justice] in the land, by divine command"</span></div>` },
+  { id:'astro', tag:'Astronomical Diary · c. 652–61 BCE · Neo-Babylonian', title:'The Astronomical Diaries', teaser:'Night after night, for 700 years, scribes recorded the sky. The first systematic science.', glyph:'𒀭𒌑𒌗',
+    story:`<div class="story-text"><p>Every night that was clear enough, a Babylonian scribe climbed to the roof of the Esagila temple in Babylon and looked at the sky. He recorded what he saw: the position of the moon relative to named stars, which planets were visible, where Jupiter stood in the zodiac, the direction of the wind, the height of the Euphrates, the price of barley in the market.</p><p>He did this every night for nearly seven hundred years. Different scribes, same discipline, same format, same clay.</p><p>By the time Alexander the Great conquered Babylon in 331 BCE, the Babylonians had enough data to <span class="em">predict lunar eclipses</span> with accuracy. They had discovered the 18-year Saros cycle. They had invented the zodiac. They had created, from thousands of careful observations pressed into clay night after night, <span class="em">the first systematic science in human history.</span></p>`,
+    scholar:`<div class="scholar-block"><div><span class="sk">Corpus:</span> ~1,200 tablets, British Museum</div><div><span class="sk">Period:</span> c. 652–61 BCE (nearly 600 years of continuous observation)</div><div><span class="sk">Language:</span> Late Babylonian cuneiform</div><div><span class="sk">Contents:</span> Planetary positions, lunar eclipses, weather, Euphrates water levels, commodity prices</div><div><span class="sk">Key achievement:</span> Saros cycle discovery (18-year lunar eclipse cycle); basis for Babylonian mathematical astronomy</div><div><span class="sk">Legacy:</span> Greek astronomers (incl. Hipparchus) drew on Babylonian data — the roots of Western astronomy</div></div><div class="tablet-excerpt"><span class="excerpt-cuneiform">𒀭𒌑𒌗𒆳𒌷</span><span class="excerpt-translat">DINGIR UD U₄.SAKAR KUR URU</span><span class="excerpt-translation">"The divine sun and moon [observed] over the mountain city"</span></div>` },
+  { id:'ration', tag:'Administrative tablet · c. 2040 BCE · Ur III period · Yale collection', title:'A Ration List from Ur', teaser:'Thirty-seven workers. Their names, their jobs, their daily bread. The most human document of all.', glyph:'𒇽𒁀𒃻',
+    story:`<div class="story-text"><p>This is not a famous tablet. It will not be in any anthology of great literature. It is a payroll record from a weaving house in the city of Ur, dated to the reign of Amar-Suen, approximately 2040 BCE.</p><p>Thirty-seven workers are listed. Each receives a daily allocation of barley — between one and two litres, depending on their skill and status. The women receive slightly less than the men. The children receive less still. Some workers have Sumerian names. Others have foreign names: Amorites, perhaps, or Elamites — migrants working in the textile industry of ancient Ur.</p><p>One worker is listed as sick. Another's allocation is noted as "not collected." <span class="em">Someone didn't show up that day.</span></p><p>There are hundreds of thousands of tablets like this. They are the most honest record we have of how ancient civilization actually functioned — not in myths and royal proclamations, but in the small accounting of who got fed and who did not.</p></div>`,
+    scholar:`<div class="scholar-block"><div><span class="sk">Type:</span> Administrative ration list</div><div><span class="sk">Period:</span> Ur III dynasty, c. 2112–2004 BCE</div><div><span class="sk">Language:</span> Sumerian cuneiform</div><div><span class="sk">Institution:</span> Temple weaving workshop (é-uš-bar)</div><div><span class="sk">Contents:</span> Names, job titles, daily barley rations in sila (≈1 litre)</div><div><span class="sk">Significance:</span> Primary source for labor organization, gender pay disparity, migrant workers, and daily life in ancient Mesopotamia</div><div><span class="sk">Corpus:</span> ~100,000 Ur III administrative tablets survive worldwide</div></div><div class="tablet-excerpt"><span class="excerpt-cuneiform">𒇽𒁀𒃻𒌑𒆠</span><span class="excerpt-translat">LÚ BA NINDA UD KI</span><span class="excerpt-translation">"The workers received bread rations [on this] day [at this] place"</span></div>` },
+];
+
+// ─── WORD MAP ───
+const wordMap = {
+  'water':[{g:'𒀀',l:'A'}],'air':[{g:'𒅎',l:'IM'}],'fire':[{g:'𒉺',l:'IZI'}],'earth':[{g:'𒆠',l:'KI'}],
+  'sky':[{g:'𒀭',l:'AN'}],'sun':[{g:'𒌑',l:'UD'}],'moon':[{g:'𒌗',l:'NANNA'}],'star':[{g:'𒀭',l:'MUL'}],
+  'god':[{g:'𒀭',l:'DINGIR'}],'king':[{g:'𒈗',l:'LUGAL'}],'man':[{g:'𒇽',l:'LÚ'}],'woman':[{g:'𒊩',l:'MUNUS'}],
+  'house':[{g:'𒂍',l:'É'}],'temple':[{g:'𒂍',l:'É'}],'mountain':[{g:'𒆳',l:'KUR'}],'land':[{g:'𒆳',l:'KUR'}],
+  'lord':[{g:'𒂗',l:'EN'}],'master':[{g:'𒂗',l:'EN'}],'day':[{g:'𒌑',l:'UD'}],'time':[{g:'𒌑',l:'UD'}],
+  'love':[{g:'𒆗',l:'KI.ÁG'}],'life':[{g:'𒍪',l:'ZI'}],'death':[{g:'𒌦',l:'UG₇'}],'great':[{g:'𒃲',l:'GAL'}],
+  'city':[{g:'𒌷',l:'URU'}],'river':[{g:'𒀀',l:'ÍD'}],'fish':[{g:'𒄩',l:'HA'}],'bird':[{g:'𒄷',l:'MUŠEN'}],
+  'bread':[{g:'𒃻',l:'NINDA'}],'beer':[{g:'𒃰',l:'KAŠ'}],'silver':[{g:'𒆬',l:'KÙ.BABBAR'}],'gold':[{g:'𒆬',l:'KÙ.GI'}],
+  'tree':[{g:'𒄑',l:'GIŠ'}],'wood':[{g:'𒄑',l:'GIŠ'}],'stone':[{g:'𒄑',l:'NA₄'}],'oil':[{g:'𒄿',l:'Ì'}],
+  'garden':[{g:'𒆳',l:'KUR'},{g:'𒂍',l:'É'}],'peace':[{g:'𒍪',l:'ZI'},{g:'𒆗',l:'SILIM'}],
+  'war':[{g:'𒈗',l:'LUGAL'},{g:'𒌷',l:'URU'}],'write':[{g:'𒁾',l:'DUB'},{g:'𒊭',l:'SAR'}],
+  'scribe':[{g:'𒇽',l:'LÚ'},{g:'𒁾',l:'DUB'},{g:'𒊭',l:'SAR'}],
+  'palace':[{g:'𒂍',l:'É'},{g:'𒃲',l:'GAL'}],'queen':[{g:'𒊩',l:'MUNUS'},{g:'𒈗',l:'LUGAL'}],
+  'natasha':[{g:'𒀭',l:'NA'},{g:'𒋫',l:'TA'},{g:'𒊭',l:'ŠA'}],
+  'alejandro':[{g:'𒀀',l:'A'},{g:'𒇷',l:'LE'},{g:'𒄿',l:'I'},{g:'𒀭',l:'AN'}],
+  'aruna':[{g:'𒀀',l:'A'},{g:'𒊏',l:'RU'},{g:'𒀭',l:'NA'}],
+  'indonesia':[{g:'𒄿',l:'I'},{g:'𒀭',l:'NA'},{g:'𒁕',l:'DA'},{g:'𒀭',l:'NA'}],
+  'jakarta':[{g:'𒅆',l:'JA'},{g:'𒆪',l:'KA'},{g:'𒋫',l:'TA'}],
+};
+
+const explanations = {
+  'water':'𒀀 (A) is one of the oldest signs — originally depicting rippling waves. It appears in the Nineveh water records hundreds of times.',
+  'king':'LUGAL combines LÚ (man) and GAL (great) — literally "the great man." The Sumerian King List traces LUGAL back to when kingship first descended from heaven.',
+  'god':'DINGIR is a silent determinative — written before all divine names but never spoken aloud. A star pressed into clay as a marker of the sacred.',
+  'life':'ZI carries the breath of life — it also means spirit, soul, and the act of breathing. Central to the Epic of Gilgamesh.',
+  'love':'KI.ÁG is a compound — KI (earth/place) + ÁG (to measure). Love as the act of measuring something by its place in the world.',
+  'palace':'É.GAL — the great house — is the source of our word palace, via Akkadian into Arabic alcázar into English.',
+  'scribe':'LÚ.DUB.SAR — the man of the clay tablet who writes. The first profession to leave a written record of itself.',
+  'garden':'No single sign — the gardens were described as a "great house on the mountain," KUR + É, the impossible made administrative.',
+  'natasha':'Your name in cuneiform syllables: NA + TA + ŠA. Ancient scribes would have spelled foreign names phonetically.',
+  'aruna':'Your startup name in cuneiform: A (water) + RU (to send forth) + NA (divine marker). A + RU + NA. In Sumerian, this would suggest water sent forth by the divine.',
+  'indonesia':'Phonetic rendering of Indonesia in cuneiform syllables. Ancient scribes did exactly this with foreign place names.',
+  'alejandro':'Phonetic rendering: A + LE + I + AN. That last sign, AN (sky/divine), is perhaps appropriate.',
+};
+
+
+
+
+
+// ─── STATE ───
+let currentMode = 'story';
+let selectedSign = null;
+let selectedTablet = null;
+let activeFilter = 'all';
+
+// ─── INIT ───
+function enterApp(mode) {
+  currentMode = mode;
+  document.getElementById('landing').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  updateModeUI();
+  buildFilterBar();
+  buildSignGrid();
+  buildTabletGrid();
+}
+
+// ─── MODE ───
+function toggleMode() {
+  currentMode = currentMode === 'story' ? 'scholar' : 'story';
+  updateModeUI();
+  if (selectedSign !== null) showSignDetail(selectedSign);
+  if (selectedTablet !== null) showTabletDetail(selectedTablet);
+}
+
+function updateModeUI() {
+  const sw = document.getElementById('toggleSwitch');
+  const ls = document.getElementById('label-story');
+  const lsc = document.getElementById('label-scholar');
+  if (currentMode === 'scholar') {
+    sw.classList.add('scholar-mode');
+    ls.classList.remove('active'); lsc.classList.add('active');
+  } else {
+    sw.classList.remove('scholar-mode');
+    ls.classList.add('active'); lsc.classList.remove('active');
+  }
+  document.querySelectorAll('.mode-content').forEach(el => el.classList.remove('visible'));
+  document.querySelectorAll(currentMode === 'story' ? '.story-content' : '.scholar-content').forEach(el => el.classList.add('visible'));
+}
+
+// ─── SECTIONS ───
+function showSection(id, tab) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  const sec = document.getElementById('sec-' + id);
+  sec.classList.add('active', 'fade-in');
+  tab.classList.add('active');
+  updateModeUI();
+}
+
+// ─── FILTER BAR ───
+const categories = {all:'All Signs', nature:'Nature', people:'People', places:'Places', geography:'Geography', concepts:'Concepts', divine:'Divine', economy:'Economy'};
+const catColors = {nature:'#4a8a5a', people:'#8a4a7a', places:'#4a7c8a', geography:'#8a6a4a', concepts:'#6a4a8a', divine:'#c9a84c', economy:'#7a8a4a'};
+
+function buildFilterBar() {
+  const bar = document.getElementById('filterBar');
+  bar.innerHTML = Object.entries(categories).map(([k,v]) =>
+    `<button class="filter-btn ${k==='all'?'active':''}" onclick="filterSigns('${k}',this)">${v}</button>`
+  ).join('');
+}
+
+function filterSigns(cat, btn) {
+  activeFilter = cat;
+  document.querySelectorAll('#filterBar .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.sign-card').forEach((card, i) => {
+    const matches = cat === 'all' || signs[i].category === cat;
+    card.classList.toggle('hidden', !matches);
+  });
+  closeDetail();
+}
+
+// ─── SIGN GRID ───
+function buildSignGrid() {
+  const grid = document.getElementById('signsGrid');
+  grid.innerHTML = '';
+  signs.forEach((sign, i) => {
+    const card = document.createElement('div');
+    card.className = 'sign-card';
+    const dot = catColors[sign.category] || '#888';
+    card.innerHTML = `
+      <span class="sign-glyph">${sign.glyph}</span>
+      <span class="sign-name"><span class="sign-category-dot" style="background:${dot}"></span>${sign.name}</span>
+      <span class="sign-translation">${sign.meaning}</span>`;
+    card.onclick = () => showSignDetail(i);
+    grid.appendChild(card);
+  });
+}
+
+function showSignDetail(i) {
+  selectedSign = i;
+  const sign = signs[i];
+  document.querySelectorAll('.sign-card').forEach((c,j) => c.classList.toggle('selected', j===i));
+  document.getElementById('detailGlyph').textContent = sign.glyph;
+  document.getElementById('detailName').textContent = sign.meaning.charAt(0).toUpperCase() + sign.meaning.slice(1);
+  document.getElementById('detailTranslit').textContent = `${sign.name} · ${sign.period}`;
+  document.getElementById('detailStory').innerHTML = sign.story;
+  document.getElementById('detailScholar').innerHTML = sign.scholar.map(row =>
+    `<div class="scholar-row"><span class="scholar-key">${row[0]}</span><span class="scholar-val">${row[1]}</span></div>`
+  ).join('');
+  // Evolution strip
+  const evoEl = document.getElementById('detailEvo');
+  if (sign.evolution && sign.evolution.length) {
+    evoEl.style.display = 'block';
+    evoEl.innerHTML = `<span class="evolution-label">Sign evolution</span><div class="evolution-steps">${
+      sign.evolution.map((s,idx) =>
+        `<div class="evo-step"><span class="evo-glyph">${s.g}</span><span class="evo-era">${s.e}</span></div>${idx < sign.evolution.length-1 ? '<span class="evo-arrow">→</span>' : ''}`
+      ).join('')
+    }</div>`;
+  } else {
+    evoEl.style.display = 'none';
+  }
+  const detail = document.getElementById('signDetail');
+  detail.classList.add('visible');
+  updateModeUI();
+  setTimeout(() => detail.scrollIntoView({behavior:'smooth', block:'nearest'}), 50);
+}
+
+function closeDetail() {
+  document.getElementById('signDetail').classList.remove('visible');
+  document.querySelectorAll('.sign-card').forEach(c => c.classList.remove('selected'));
+  selectedSign = null;
+}
+
+// ─── TABLETS ───
+function buildTabletGrid() {
+  const grid = document.getElementById('tabletsGrid');
+  grid.innerHTML = '';
+  tablets.forEach((t, i) => {
+    const card = document.createElement('div');
+    card.className = 'tablet-card';
+    card.innerHTML = `
+      <span class="tablet-card-tag">${t.tag}</span>
+      <div class="tablet-card-title">${t.title}</div>
+      <div class="tablet-card-teaser">${t.teaser}</div>
+      <span class="tablet-card-glyph">${t.glyph}</span>`;
+    card.onclick = () => showTabletDetail(i);
+    grid.appendChild(card);
+  });
+}
+
+function showTabletDetail(i) {
+  selectedTablet = i;
+  const t = tablets[i];
+  document.querySelectorAll('.tablet-card').forEach((c,j) => c.classList.toggle('selected', j===i));
+  document.getElementById('tdTag').textContent = t.tag;
+  document.getElementById('tdTitle').textContent = t.title;
+  const content = document.getElementById('tdContent');
+  content.innerHTML = `
+    <div class="story-content mode-content">${t.story}</div>
+    <div class="scholar-content mode-content">${t.scholar}</div>`;
+  const detail = document.getElementById('tabletDetail');
+  detail.classList.add('visible');
+  updateModeUI();
+  setTimeout(() => detail.scrollIntoView({behavior:'smooth', block:'nearest'}), 50);
+}
+
+function closeTablet() {
+  document.getElementById('tabletDetail').classList.remove('visible');
+  document.querySelectorAll('.tablet-card').forEach(c => c.classList.remove('selected'));
+  selectedTablet = null;
+}
+
+
+// ─── WRITE ───
+const phoneticMap = {
+  'a':['𒀀','A'],'b':['𒁀','BA'],'c':['𒆪','KU'],'d':['𒁕','DA'],
+  'e':['𒂊','E'],'f':['𒉺','IZI'],'g':['𒂵','GA'],'h':['𒄩','HA'],
+  'i':['𒄿','I'],'j':['𒅆','IA'],'k':['𒆪','KA'],'l':['𒇷','LI'],
+  'm':['𒈠','MA'],'n':['𒀭','NA'],'o':['𒌒','U'],'p':['𒁉','PI'],
+  'q':['𒆪','QU'],'r':['𒊏','RA'],'s':['𒊭','SA'],'t':['𒋫','TA'],
+  'u':['𒌒','U'],'v':['𒁁','AB'],'w':['𒉿','WA'],'x':['𒆳','KUR'],
+  'y':['𒅀','IA'],'z':['𒍪','ZI'],
+};
+
+function renderCuneiform() {
+  const input = document.getElementById('writeInput').value.trim().toLowerCase();
+  const resultEl = document.getElementById('cuneiformResult');
+  const explEl = document.getElementById('writeExplanation');
+  document.getElementById('downloadPreview').style.display = 'none';
+
+  if (!input) {
+    resultEl.className = 'cuneiform-render empty';
+    resultEl.textContent = 'Your inscription will appear here';
+    explEl.textContent = '';
+    return;
+  }
+
+  let signsList;
+  if (wordMap[input]) {
+    signsList = wordMap[input];
+    resultEl.className = 'cuneiform-render';
+    resultEl.innerHTML = signsList.map(s =>
+      `<span class="char-result"><span class="char-glyph">${s.g}</span><span class="char-label">${s.l}</span></span>`
+    ).join('');
+    explEl.textContent = explanations[input] || `Rendered using authentic cuneiform signs for "${input}".`;
+  } else {
+    const chars = input.replace(/[^a-z]/g,'').split('').slice(0,10);
+    if (!chars.length) { resultEl.textContent = 'Enter a word or name'; return; }
+    signsList = chars.map(ch => ({g:(phoneticMap[ch]||['𒀭','?'])[0], l:(phoneticMap[ch]||['𒀭','?'])[1]}));
+    resultEl.className = 'cuneiform-render';
+    resultEl.innerHTML = signsList.map(s =>
+      `<span class="char-result"><span class="char-glyph">${s.g}</span><span class="char-label">${s.l}</span></span>`
+    ).join('');
+    explEl.textContent = `Rendered phonetically — each sign approximates a syllable. Ancient scribes wrote Sumerian and Akkadian, not modern languages, so this is a creative approximation rather than a literal translation.`;
+  }
+}
+
+function downloadInscription() {
+  const input = document.getElementById('writeInput').value.trim();
+  if (!input) { alert('Enter a word first.'); return; }
+  
+  const canvas = document.getElementById('inscriptionCanvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = 900; canvas.height = 320;
+
+  // Background — clay texture
+  const grad = ctx.createRadialGradient(450,160,0,450,160,500);
+  grad.addColorStop(0, '#3d2010');
+  grad.addColorStop(1, '#1a0f07');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,900,320);
+
+  // Border
+  ctx.strokeStyle = 'rgba(196,149,106,0.4)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(20,20,860,280);
+  ctx.strokeStyle = 'rgba(196,149,106,0.15)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(28,28,844,264);
+
+  // Get signs
+  const lower = input.toLowerCase();
+  const signsList = wordMap[lower] || lower.replace(/[^a-z]/g,'').split('').slice(0,10).map(ch => ({g:(phoneticMap[ch]||['𒀭','?'])[0], l:(phoneticMap[ch]||['𒀭','?'])[1]}));
+
+  // Draw glyphs
+  ctx.font = '80px serif';
+  ctx.fillStyle = '#e8c99a';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(196,149,106,0.5)';
+  ctx.shadowBlur = 20;
+  const startX = 450 - ((signsList.length - 1) * 90) / 2;
+  signsList.forEach((s, i) => {
+    ctx.fillText(s.g, startX + i * 90, 175);
+  });
+  ctx.shadowBlur = 0;
+
+  // Labels
+  ctx.font = '11px monospace';
+  ctx.fillStyle = '#8b5a3a';
+  ctx.shadowBlur = 0;
+  signsList.forEach((s, i) => {
+    ctx.fillText(s.l, startX + i * 90, 210);
+  });
+
+  // Input word at top
+  ctx.font = 'italic 16px Georgia';
+  ctx.fillStyle = 'rgba(196,149,106,0.5)';
+  ctx.fillText(`"${input}"`, 450, 60);
+
+  // Branding
+  ctx.font = '12px monospace';
+  ctx.fillStyle = 'rgba(139,90,58,0.4)';
+  ctx.fillText('THE CLAY · theclay.archive', 450, 290);
+
+  // Show preview
+  const imgData = canvas.toDataURL('image/png');
+  const preview = document.getElementById('downloadPreview');
+  preview.src = imgData;
+  preview.style.display = 'block';
+
+  // Download
+  const a = document.createElement('a');
+  a.href = imgData;
+  a.download = `the-clay-${input.replace(/\s+/g,'-')}.png`;
+  a.click();
+}
+
+document.getElementById('writeInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); renderCuneiform(); }
+});
+</script>
+</body>
+</html>
